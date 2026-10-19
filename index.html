@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Y. — Daily OS</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#07080c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Daily OS">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+
+:root {
+  --bg:#07080c; --s1:#0d0f17; --s2:#121520; --s3:#171b28;
+  --border:#1e2235; --border2:#262d45;
+  --blue:#4f7cff; --indigo:#7c5cff; --violet:#b06dff; --pink:#f059b0;
+  --green:#00e5a0; --teal:#00c9a7; --gold:#ffb020; --red:#ff4d6d;
+  --text:#eaeef8; --text2:#7a84a8; --muted:#404868;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+:root { box-sizing:border-box; padding-top:env(safe-area-inset-top, 0px); padding-bottom:env(safe-area-inset-bottom, 0px); }
+html { scroll-padding-top:env(safe-area-inset-top, 0px); }
+html, body { height:100%; overflow:hidden; font-family:var(--font); }
+body { background:var(--bg); color:var(--text); display:flex; flex-direction:column; }
+body::before { content:''; position:fixed; width:500px; height:500px; border-radius:50%;
+  background:radial-gradient(circle,var(--blue),transparent 70%); top:-200px; left:-200px;
+  filter:blur(100px); opacity:.05; pointer-events:none; z-index:-1; }
+
+.top-nav { display:flex; align-items:center; padding:0 16px; height:52px; flex-shrink:0;
+  background:#0d0f17f0; backdrop-filter:blur(20px); border-bottom:1px solid var(--border); z-index:1000; position:relative; }
+.nav-logo { font-family:var(--mono); font-size:15px; font-weight:600; margin-right:16px;
+  background:linear-gradient(135deg,var(--blue),var(--violet)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.nav-links { display:flex; gap:2px; flex:1; overflow-x:auto; scrollbar-width:none; }
+.nav-links::-webkit-scrollbar{display:none;}
+.nl { padding:7px 14px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;
+  color:var(--muted); border:none; background:none; font-family:var(--font); transition:all .2s; white-space:nowrap; }
+.nl:hover { color:var(--text2); background:var(--s2); }
+.nl.active { color:var(--blue); background:#4f7cff12; }
+.nav-date { font-family:var(--mono); font-size:11px; color:var(--muted); flex-shrink:0; }
+
+.bot-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:1000;
+  background:#0d0f17f5; backdrop-filter:blur(20px); border-top:1px solid var(--border); height:58px;
+  align-items:center; justify-content:space-around; padding:0 2px; padding-bottom:env(safe-area-inset-bottom, 0px); }
+.bn { display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 6px; border-radius:8px;
+  cursor:pointer; color:var(--muted); border:none; background:none; font-family:var(--font); min-width:0; }
+.bn-i { font-size:17px; } .bn-l { font-size:9px; font-weight:700; }
+.bn.active { color:var(--blue); }
+
+.pages { flex:1; overflow:hidden; position:relative; }
+.page { display:none; height:100%; overflow-y:auto; padding:18px 18px 80px; scrollbar-width:thin; scrollbar-color:var(--border2) transparent; }
+.page::-webkit-scrollbar { width:3px; } .page::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+.page.active { display:block; }
+.inner { max-width:680px; margin:0 auto; }
+
+.card { background:linear-gradient(135deg,var(--s1),var(--s2)); border:1px solid var(--border);
+  border-radius:14px; padding:18px; margin-bottom:14px; }
+.clabel { font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:14px; }
+
+.inp { background:var(--s3); border:1px solid var(--border2); border-radius:10px; padding:11px 13px;
+  color:var(--text); font-size:13px; font-family:var(--font); outline:none; width:100%; font-weight:500; }
+.inp:focus { border-color:#4f7cff70; box-shadow:0 0 0 3px #4f7cff0d; }
+.inp::placeholder { color:var(--muted); font-weight:400; }
+textarea.inp { resize:vertical; line-height:1.7; }
+.sel { background:var(--s3); border:1px solid var(--border2); border-radius:10px; padding:11px 10px;
+  color:var(--text); font-size:12px; font-family:var(--font); outline:none; cursor:pointer; font-weight:700; }
+.row { display:flex; gap:7px; margin-bottom:9px; }
+.btn { padding:11px 18px; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer;
+  border:none; font-family:var(--font); flex-shrink:0; transition:all .15s; }
+.btn:active { transform:scale(.97); }
+.b-blue { background:linear-gradient(135deg,var(--blue),var(--indigo)); color:#fff; }
+.b-violet { background:linear-gradient(135deg,var(--violet),var(--pink)); color:#fff; }
+.b-ghost { background:var(--s3); color:var(--text2); border:1px solid var(--border2); }
+
+/* task/todo items (shared style for today + week) */
+.titem { display:flex; align-items:center; gap:9px; padding:11px 13px; background:var(--s3);
+  border-radius:10px; border-left:3px solid var(--border2); margin-bottom:7px; animation:fi .2s ease; }
+@keyframes fi { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+.tchk { width:19px; height:19px; border:2px solid var(--border2); border-radius:5px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.tchk.done { background:linear-gradient(135deg,var(--green),var(--teal)); border-color:var(--green); }
+.tchk.done::after { content:'✓'; font-size:11px; color:#07080c; font-weight:900; }
+.ttxt { flex:1; font-size:13px; font-weight:600; }
+.ttxt.done { text-decoration:line-through; color:var(--muted); }
+.tdel { background:none; border:none; color:var(--muted); cursor:pointer; font-size:14px; padding:2px 6px; }
+.tdel:hover { color:var(--red); }
+.empty { text-align:center; padding:26px 12px; color:var(--muted); font-size:13px; line-height:2; }
+.empty-ic { font-size:26px; margin-bottom:6px; display:block; opacity:.3; }
+
+/* week plan */
+.wk-nav { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.wk-range { flex:1; text-align:center; font-size:13px; font-weight:700; color:var(--text2); }
+.goalbox { background:linear-gradient(135deg,#b06dff08,#f059b005); border:1px solid #b06dff18;
+  border-radius:10px; padding:12px 14px; margin-bottom:14px; }
+.goalbox .glabel { font-size:9px; color:var(--violet); font-family:var(--mono); letter-spacing:2px; margin-bottom:8px; }
+
+.wtag { font-size:10px; padding:2px 8px; border-radius:5px; font-weight:700; flex-shrink:0; }
+
+.pgwrap { background:var(--s3); border-radius:99px; height:5px; overflow:hidden; margin-top:12px; }
+.pgfill { height:100%; background:linear-gradient(90deg,var(--blue),var(--violet),var(--green)); border-radius:99px; transition:width .5s; }
+.pgrow { display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:6px; }
+
+/* habits */
+.hgrid { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+.hi { display:flex; align-items:center; gap:9px; padding:11px 12px; background:var(--s3); border-radius:10px;
+  cursor:pointer; border:1px solid transparent; transition:all .2s; user-select:none; }
+.hi.done { border-color:#00e5a040; background:linear-gradient(135deg,#00e5a00d,#00c9a708); }
+.hi-ic { font-size:16px; flex-shrink:0; }
+.hi-lb { font-size:12px; font-weight:600; flex:1; line-height:1.3; }
+.hi-bx { width:18px; height:18px; border:2px solid var(--border2); border-radius:5px; display:flex;
+  align-items:center; justify-content:center; flex-shrink:0; transition:all .2s; }
+.hi.done .hi-bx { background:linear-gradient(135deg,var(--green),var(--teal)); border-color:var(--green); }
+.hi.done .hi-bx::after { content:'✓'; font-size:11px; color:#07080c; font-weight:900; }
+@media(max-width:500px){ .hgrid{grid-template-columns:1fr;} }
+
+.whtbl { width:100%; border-collapse:separate; border-spacing:3px; margin-top:4px; }
+.whcell { width:22px; height:22px; border-radius:5px; margin:auto; background:var(--border);
+  display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; }
+.whcell.done { background:linear-gradient(135deg,var(--green),var(--teal)); color:#07080c; }
+.whstats { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:8px; }
+.wstat { background:var(--s3); border-radius:10px; padding:9px; text-align:center; border:1px solid var(--border); }
+.wstat-p { font-size:14px; font-weight:800; margin-bottom:2px; }
+.wstat-l { font-size:9px; color:var(--text2); line-height:1.3; }
+
+/* journal */
+.jtabs { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+.jtab { padding:7px 15px; border-radius:9px; font-size:12px; font-weight:700; cursor:pointer;
+  border:1px solid var(--border); background:var(--s3); color:var(--muted); font-family:var(--font); }
+.jtab.active { background:linear-gradient(135deg,var(--violet),var(--pink)); border-color:transparent; color:#fff; }
+.jpage { display:none; } .jpage.on { display:block; }
+.pbox { background:linear-gradient(135deg,#b06dff08,#f059b005); border:1px solid #b06dff18;
+  border-radius:10px; padding:12px 14px; margin-bottom:12px; }
+.plabel { font-size:9px; color:var(--violet); font-family:var(--mono); letter-spacing:2px; margin-bottom:8px; }
+.pq { font-size:12px; color:var(--text2); padding-left:10px; border-left:2px solid var(--violet); line-height:1.6; margin-bottom:6px; font-weight:500; }
+.pq:last-child { margin-bottom:0; }
+.jentry { background:var(--s3); border:1px solid var(--border); border-radius:10px; padding:13px;
+  border-left:3px solid var(--violet); margin-bottom:9px; animation:fi .2s ease; }
+.jhead { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.jdate { font-family:var(--mono); font-size:10px; color:var(--muted); }
+.jtype { font-size:10px; padding:2px 8px; border-radius:5px; font-weight:700; background:#b06dff15; color:var(--violet); }
+.jdel { margin-left:auto; background:none; border:none; color:var(--muted); cursor:pointer; font-size:14px; }
+.jdel:hover { color:var(--red); }
+.jtext { font-size:13px; color:var(--text2); line-height:1.8; white-space:pre-wrap; }
+.svok { font-size:11px; color:var(--green); display:none; font-family:var(--mono); font-weight:700; }
+
+.bkitem { display:flex; align-items:center; gap:10px; padding:11px 12px; background:var(--s3);
+  border-radius:10px; border:1px solid var(--border); margin-bottom:8px; }
+
+.sbanner { position:fixed; top:55px; left:0; right:0; z-index:2000; display:flex; align-items:center;
+  justify-content:center; gap:8px; padding:7px 16px; font-size:12px; font-weight:700; transition:all .3s;
+  transform:translateY(-120%); opacity:0; font-family:var(--font); pointer-events:none; }
+.sbanner.show { transform:translateY(0); opacity:1; }
+.sbanner.saved { background:linear-gradient(135deg,#00c9a795,#00e5a095); color:#07080c; backdrop-filter:blur(10px); }
+
+.syncrow { text-align:right; margin-bottom:10px; }
+.syncpill { font-family:var(--mono); font-size:11px; font-weight:600; color:var(--muted); }
+
+/* ── 70-day challenge / gamification ── */
+.chstrip { display:flex; align-items:center; gap:10px; padding:10px 14px; margin-bottom:12px; cursor:pointer;
+  background:linear-gradient(135deg,#7c5cff22,#00e5a014); border:1px solid #7c5cff44; border-radius:14px; }
+.chstrip .cs-main { flex:1; min-width:0; }
+.chstrip .cs-t { font-size:12px; font-weight:700; display:flex; gap:10px; flex-wrap:wrap; }
+.chstrip .pgwrap { margin-top:6px; height:4px; }
+.ch-top { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+.ch-lv { width:62px; height:62px; border-radius:18px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:linear-gradient(135deg,var(--indigo),var(--pink)); color:#fff; font-weight:800; flex-shrink:0; box-shadow:0 4px 18px #7c5cff55; }
+.ch-lv small { font-size:9px; font-family:var(--mono); letter-spacing:1px; opacity:.85; }
+.ch-lv b { font-size:22px; line-height:1; }
+.ch-xpbox { flex:1; min-width:0; }
+.ch-title { font-size:15px; font-weight:800; }
+.ch-xptxt { font-size:11px; color:var(--text2); font-family:var(--mono); margin-top:2px; }
+.ch-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-bottom:14px; }
+.ch-stat { background:var(--s3); border-radius:12px; padding:10px 4px; text-align:center; }
+.ch-stat b { display:block; font-size:19px; font-weight:800; }
+.ch-stat span { font-size:9px; color:var(--text2); font-family:var(--mono); letter-spacing:1px; text-transform:uppercase; }
+.ch-grid { display:grid; grid-template-columns:repeat(10,1fr); gap:5px; margin-bottom:12px; }
+.ch-cell { aspect-ratio:1; border-radius:7px; background:var(--s3); display:flex; align-items:center; justify-content:center;
+  font-size:10px; font-family:var(--mono); color:var(--muted); border:1px solid transparent; }
+.ch-cell.fut { opacity:.45; }
+.ch-cell.low { background:#ffb02026; color:var(--gold); }
+.ch-cell.good { background:#00e5a033; color:var(--green); }
+.ch-cell.perf { background:linear-gradient(135deg,var(--green),var(--teal)); color:#07080c; font-weight:800; }
+.ch-cell.now { border-color:var(--blue); box-shadow:0 0 0 2px #4f7cff55; }
+.ch-msg { font-size:12px; color:var(--text2); line-height:1.7; padding:10px 12px; background:var(--s3); border-radius:10px; border-left:3px solid var(--violet); }
+.ch-badges { display:grid; grid-template-columns:repeat(auto-fill,minmax(104px,1fr)); gap:7px; }
+.ch-b { background:var(--s3); border-radius:12px; padding:10px 6px; text-align:center; border:1px solid transparent; }
+.ch-b .bi { font-size:24px; filter:grayscale(1); opacity:.35; }
+.ch-b .bn2 { font-size:11px; font-weight:700; margin-top:3px; color:var(--muted); }
+.ch-b .bd { font-size:9px; color:var(--muted); margin-top:2px; line-height:1.3; }
+.ch-b.on { border-color:#ffb02055; background:linear-gradient(135deg,#ffb02014,#b06dff10); }
+.ch-b.on .bi { filter:none; opacity:1; }
+.ch-b.on .bn2 { color:var(--text); }
+.ch-set { margin-top:14px; font-size:11px; color:var(--text2); display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.ch-set input { background:var(--s3); border:1px solid var(--border2); color:var(--text); border-radius:8px; padding:5px 8px; font-family:var(--font); }
+.hi-st { font-size:10px; font-weight:800; color:var(--gold); font-family:var(--mono); white-space:nowrap; }
+.gtoast { position:fixed; left:50%; bottom:92px; transform:translate(-50%,20px); opacity:0; pointer-events:none; z-index:60;
+  background:linear-gradient(135deg,var(--indigo),var(--pink)); color:#fff; font-weight:800; font-size:13px; padding:11px 18px;
+  border-radius:14px; box-shadow:0 8px 30px #000a; transition:all .35s; max-width:90vw; text-align:center; }
+.gtoast.show { opacity:1; transform:translate(-50%,0); }
+@media(min-width:768px){
+  .inner { max-width:760px; }
+  .page { padding:24px 28px 40px; }
+}
+
+@media(max-width:600px){
+  .top-nav .nav-links,.nav-date{display:none;}
+  .bot-nav{display:flex;}
+  .page{padding:14px 12px calc(74px + env(safe-area-inset-bottom, 0px));}
+}
+</style>
+</head>
+<body>
+
+<div class="gtoast" id="gtoast"></div>
+<div class="sbanner" id="sbanner"><span>✓ Saved</span></div>
+
+<nav class="top-nav">
+  <div class="nav-logo">Y.</div>
+  <div class="nav-links">
+    <button class="nl active" onclick="goPage('today')">✅ Today</button>
+    <button class="nl" onclick="goPage('week')">🗓️ Week</button>
+    <button class="nl" onclick="goPage('habits')">🔁 Habits</button>
+    <button class="nl" onclick="goPage('journal')">📓 Journal</button>
+    <button class="nl" onclick="goPage('backup')">💾 Backup</button>
+  </div>
+  <div class="nav-date" id="navDate">—</div>
+</nav>
+
+<nav class="bot-nav">
+  <button class="bn active" onclick="goPage('today')"><span class="bn-i">✅</span><span class="bn-l">Today</span></button>
+  <button class="bn" onclick="goPage('week')"><span class="bn-i">🗓️</span><span class="bn-l">Week</span></button>
+  <button class="bn" onclick="goPage('habits')"><span class="bn-i">🔁</span><span class="bn-l">Habits</span></button>
+  <button class="bn" onclick="goPage('journal')"><span class="bn-i">📓</span><span class="bn-l">Journal</span></button>
+  <button class="bn" onclick="goPage('backup')"><span class="bn-i">💾</span><span class="bn-l">Backup</span></button>
+</nav>
+
+<div class="pages">
+
+<!-- TODAY -->
+<div class="page active" id="page-today"><div class="inner">
+  <div class="syncrow"><span class="syncpill">📴 This device only</span></div>
+  <div class="chstrip" id="ch-strip" onclick="goPage('habits')">
+    <div style="font-size:26px" id="cs-ic">🔥</div>
+    <div class="cs-main">
+      <div class="cs-t"><span id="cs-day">Day 1 / 70</span><span id="cs-streak">🔥 0</span><span id="cs-lv">Lv 1</span></div>
+      <div class="pgwrap"><div class="pgfill" id="cs-bar" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="clabel" id="today-label">Today's tasks</div>
+    <div class="row">
+      <input class="inp" id="ti-inp" placeholder="Add a task..." style="flex:1"/>
+      <button class="btn b-blue" onclick="addTodayTask()">+</button>
+    </div>
+    <div id="ti-list"></div>
+  </div>
+
+  <div class="card">
+    <div class="clabel" id="tomorrow-label">🌒 Plan for tomorrow</div>
+    <div class="row">
+      <input class="inp" id="tw-inp" placeholder="Add a task for tomorrow..." style="flex:1"/>
+      <button class="btn b-violet" onclick="addTomorrowTask()">+</button>
+    </div>
+    <div id="tw-list"></div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">📝 Quick note</div>
+    <textarea class="inp" id="quick-note" placeholder="Anything you want to remember from today..." style="min-height:70px;margin-bottom:10px"></textarea>
+    <div style="display:flex;align-items:center;gap:9px">
+      <button class="btn b-violet" style="padding:9px 16px;font-size:12px" onclick="saveQuickNote()">💾 Save</button>
+      <span class="svok" id="qn-saved">✓ Saved</span>
+    </div>
+  </div>
+</div></div>
+
+<!-- WEEK PLAN (to-do list style) -->
+<div class="page" id="page-week"><div class="inner">
+  <div class="card">
+    <div class="clabel">🗓️ This week's plan</div>
+    <div class="wk-nav">
+      <button class="btn b-ghost" style="padding:7px 13px;font-size:18px;line-height:1" onclick="shiftWk(-1)">‹</button>
+      <div class="wk-range" id="wk-range">—</div>
+      <button class="btn b-ghost" style="padding:7px 13px;font-size:18px;line-height:1" onclick="shiftWk(1)">›</button>
+    </div>
+
+    <div class="goalbox">
+      <div class="glabel">🎯 TOP GOALS FOR THE WEEK</div>
+      <textarea class="inp" id="wk-goals" placeholder="e.g. finish the EDA notebook, review 3 German lessons, hit the gym 3x..." style="min-height:60px"></textarea>
+    </div>
+
+    <div class="row">
+      <input class="inp" id="wi-inp" placeholder="Add something to the week's to-do list..." style="flex:1"/>
+      <select class="sel" id="wi-cat">
+        <option value="study">📊 Study</option><option value="work">💼 Work</option>
+        <option value="lang">🗣️ Language</option><option value="gym">💪 Health</option>
+        <option value="family">👨‍👩‍👦 Family</option><option value="other">📌 Other</option>
+      </select>
+      <button class="btn b-violet" onclick="addWeekItem()">+</button>
+    </div>
+    <div id="wk-list"></div>
+    <div class="pgwrap"><div class="pgfill" id="wkProg" style="width:0%"></div></div>
+    <div class="pgrow"><span id="wkCnt">0 / 0</span><span id="wkPct" style="color:var(--green);font-weight:700">0%</span></div>
+  </div>
+</div></div>
+
+<!-- HABITS -->
+<div class="page" id="page-habits"><div class="inner">
+  <div class="card" id="ch-card">
+    <div class="clabel">🏆 70-day challenge</div>
+    <div class="ch-top">
+      <div class="ch-lv"><small>LEVEL</small><b id="ch-lv">1</b></div>
+      <div class="ch-xpbox">
+        <div class="ch-title" id="ch-title">Rookie</div>
+        <div class="ch-xptxt" id="ch-xptxt">0 XP</div>
+        <div class="pgwrap" style="margin-top:8px"><div class="pgfill" id="ch-xpbar" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="ch-stats">
+      <div class="ch-stat"><b id="ch-day">1</b><span>Day / 70</span></div>
+      <div class="ch-stat"><b id="ch-cur">0</b><span>🔥 Streak</span></div>
+      <div class="ch-stat"><b id="ch-best">0</b><span>Best</span></div>
+      <div class="ch-stat"><b id="ch-perf">0</b><span>Perfect</span></div>
+    </div>
+    <div class="ch-grid" id="ch-grid"></div>
+    <div class="ch-msg" id="ch-msg"></div>
+    <div class="clabel" style="margin:18px 0 10px">🏅 Badges <span id="ch-bcount" style="color:var(--gold)"></span></div>
+    <div class="ch-badges" id="ch-badges"></div>
+    <div class="ch-set">Challenge starts: <input type="date" id="ch-start-inp" onchange="setChStart(this.value)"> <span>· +10 XP per habit, +50 for a perfect day. A day counts for your streak at 10 / 13 habits.</span></div>
+  </div>
+
+  <div class="card">
+    <div class="clabel" id="habits-label">🔁 Today's habits</div>
+    <div class="wk-nav" style="margin-bottom:14px">
+      <button class="btn b-ghost" style="padding:7px 13px;font-size:18px;line-height:1" onclick="shiftHabitDay(-1)">‹</button>
+      <div class="wk-range" id="habit-day-label">Today</div>
+      <button class="btn b-ghost" style="padding:7px 13px;font-size:12px" onclick="shiftHabitDay(0,true)">Today</button>
+      <button class="btn b-ghost" style="padding:7px 13px;font-size:18px;line-height:1" onclick="shiftHabitDay(1)">›</button>
+    </div>
+    <div class="hgrid">
+      <div class="hi" data-h="fajr"     onclick="toggleHabit(this)"><span class="hi-ic">🌙</span><span class="hi-lb">Fajr on time</span><div class="hi-bx"></div></div>
+      <div class="hi" data-h="dhuhr"    onclick="toggleHabit(this)"><span class="hi-ic">☀️</span><span class="hi-lb">Dhuhr on time</span><div class="hi-bx"></div></div>
+      <div class="hi" data-h="asr"      onclick="toggleHabit(this)"><span class="hi-ic">🌤️</span><span class="hi-lb">Asr on time</span><div class="hi-bx"></div></div>
+      <div class="hi" data-h="maghrib"  onclick="toggleHabit(this)"><span class="hi-ic">🌅</span><span class="hi-lb">Maghrib on time</span><div class="hi-bx"></div></div>
+      <div class="hi" data-h="isha"     onclick="toggleHabit(this)"><span class="hi-ic">⭐</span><span class="hi-lb">Isha on time</span><div class="hi-bx"></div></div>
+      <div class="hi" data-h="azkar_m"  onclick="toggleHabit(this)"><span class="hi-ic">🕋</span><span class="hi-lb">Morning Azkar</span><div class="hi-bx"></div></div>
+      <div class="hi" data-h="azkar_e"  onclick="toggleHabit(this)"><span class="hi-ic">🕌</span><span class="hi-lb">Evening Azkar</span><div class="hi-bx"></div></div>
+      <div class="hi" data-h="dhikr100" onclick="toggleHabit(this)"><span class="hi-ic">📿</span><span class="hi-lb">100x La ilaha illa Allah + Istighfar</span><div class="hi-bx"></div></div>
+      <div class="hi" data-h="no_porn"  onclick="toggleHabit(this)"><span class="hi-ic">🚫</span><span class="hi-lb">No porn</span><div class="hi-bx"></div></div>
+      <div class="hi" data-h="reading"  onclick="toggleHabit(this)"><span class="hi-ic">📖</span><span class="hi-lb">Reading</span><div class="hi-bx"></div></div>
+      <div class="hi" data-h="study"    onclick="toggleHabit(this)"><span class="hi-ic">💻</span><span class="hi-lb">Study / Deep Learning</span><div class="hi-bx"></div></div>
+      <div class="hi" data-h="project"  onclick="toggleHabit(this)"><span class="hi-ic">📊</span><span class="hi-lb">Project work</span><div class="hi-bx"></div></div>
+      <div class="hi" data-h="sleep"    onclick="toggleHabit(this)"><span class="hi-ic">😴</span><span class="hi-lb">Sleep on time</span><div class="hi-bx"></div></div>
+    </div>
+    <div class="pgwrap"><div class="pgfill" id="habProg" style="width:0%"></div></div>
+    <div class="pgrow"><span id="habCnt">0 / 13</span><span id="habPct" style="color:var(--green);font-weight:700">0%</span></div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">📊 This week's habit tracker</div>
+    <div style="overflow-x:auto"><table class="whtbl" id="whtable"></table></div>
+    <div class="whstats" id="whstats"></div>
+  </div>
+</div></div>
+
+<!-- JOURNAL -->
+<div class="page" id="page-journal"><div class="inner">
+  <div class="card">
+    <div class="clabel">📓 Journal</div>
+    <div class="jtabs">
+      <button class="jtab active" onclick="switchJTab('daily',this)">Daily</button>
+      <button class="jtab" onclick="switchJTab('reflect',this)">Reflect</button>
+      <button class="jtab" onclick="switchJTab('goals',this)">Goals</button>
+    </div>
+
+    <div class="jpage on" id="jp-daily">
+      <div class="pbox"><div class="plabel">PROMPTS</div>
+        <div class="pq">What's the best thing that happened today?</div>
+        <div class="pq">What would you like to do better tomorrow?</div>
+        <div class="pq">What did you need to be patient with yourself about today?</div>
+      </div>
+      <textarea class="inp" id="j-daily" placeholder="Write freely..." style="min-height:110px;margin-bottom:10px"></textarea>
+      <div style="display:flex;align-items:center;gap:9px">
+        <button class="btn b-violet" style="padding:9px 16px;font-size:12px" onclick="saveJ('daily')">💾 Save</button>
+        <span class="svok" id="sv-daily">✓ Saved</span>
+      </div>
+    </div>
+
+    <div class="jpage" id="jp-reflect">
+      <div class="pbox"><div class="plabel">DEEPER REFLECTION</div>
+        <div class="pq">What's actually holding me back from my goals?</div>
+        <div class="pq">If I were advising a friend, what would I tell them?</div>
+        <div class="pq">What will matter in 5 years?</div>
+      </div>
+      <textarea class="inp" id="j-reflect" placeholder="Reflect honestly..." style="min-height:110px;margin-bottom:10px"></textarea>
+      <div style="display:flex;align-items:center;gap:9px">
+        <button class="btn b-violet" style="padding:9px 16px;font-size:12px" onclick="saveJ('reflect')">💾 Save</button>
+        <span class="svok" id="sv-reflect">✓ Saved</span>
+      </div>
+    </div>
+
+    <div class="jpage" id="jp-goals">
+      <div class="pbox"><div class="plabel">GOALS</div>
+        <div class="pq">What are the 3 core goals for next month?</div>
+        <div class="pq">What's the one step that would move everything forward?</div>
+      </div>
+      <textarea class="inp" id="j-goals" placeholder="Write your goals..." style="min-height:110px;margin-bottom:10px"></textarea>
+      <div style="display:flex;align-items:center;gap:9px">
+        <button class="btn b-violet" style="padding:9px 16px;font-size:12px" onclick="saveJ('goals')">💾 Save</button>
+        <span class="svok" id="sv-goals">✓ Saved</span>
+      </div>
+    </div>
+
+    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
+      <div class="clabel">Past entries</div>
+      <div id="j-entries"></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- BACKUP -->
+<div class="page" id="page-backup"><div class="inner">
+  <div class="card">
+    <div class="clabel">💾 Sync &amp; backup</div>
+    <div style="background:var(--s3);border-radius:10px;padding:14px;margin-bottom:14px;border:1px solid var(--border2)">
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px">📴 Offline app — your data lives on this device</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.9">
+        No internet needed. To move your data to another device:<br>
+        1. Tap <b style="color:var(--green)">Export Backup</b> here<br>
+        2. Send the file to yourself (WhatsApp, email, Drive)<br>
+        3. On the other device tap <b style="color:var(--blue)">Import Backup</b> and pick the file<br>
+        Status: <span class="syncpill">📴 Works offline</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      <button class="btn b-violet" onclick="exportBackup()">📤 Export Backup</button>
+      <label class="btn b-blue" style="cursor:pointer;display:inline-flex;align-items:center">
+        📥 Import Backup
+        <input type="file" accept=".json" id="import-file" style="display:none" onchange="importBackup(event)"/>
+      </label>
+    </div>
+    <div class="clabel">Last 4 backups (on this device)</div>
+    <div id="bk-list"><div class="empty"><span class="empty-ic">💾</span>No backups yet</div></div>
+    <div style="margin-top:12px;padding:10px 12px;background:var(--s3);border-radius:9px;border:1px solid #ffb02020">
+      <div style="font-size:11px;color:var(--gold);font-weight:700;margin-bottom:2px">⏰ Reminder</div>
+      <div style="font-size:12px;color:var(--text2)" id="bk-reminder">Export a backup whenever you switch devices, so your data stays in sync.</div>
+    </div>
+  </div>
+</div></div>
+
+</div><!-- /pages -->
+
+<script>
+const G = id => document.getElementById(id);
+const NOW = new Date();
+const TODAY_STR = NOW.toDateString();
+const EN_DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const EN_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const EN_DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+G('navDate').textContent = `${EN_DAYS[NOW.getDay()]}, ${EN_MONTHS[NOW.getMonth()]} ${NOW.getDate()}`;
+G('today-label').textContent = `✅ ${EN_DAYS[NOW.getDay()]}'s tasks`;
+
+const JS2I = {6:0, 0:1, 1:2, 2:3, 3:4, 4:5, 5:6}; // Sat-first index
+function getSat(d){ const c=new Date(d); c.setDate(d.getDate()-JS2I[d.getDay()]); c.setHours(0,0,0,0); return c; }
+
+const LS = {
+  get(k,d=null){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch{ return d; } },
+  set(k,v){
+    try{ localStorage.setItem(k, JSON.stringify(v)); }catch{}
+    try{ SYNC.push(k); }catch{}
+  }
+};
+
+/* ── CROSS-DEVICE SYNC ──
+   localStorage stays the instant/offline cache. Every saved key is mirrored into this
+   account's private db (data/users/<id>/), and changes from other devices stream in live.
+   Conflict rule: the most recent edit of a given key wins. */
+const SYNC = (() => {
+  const SKIP = new Set(['bk_recs','_sync_t']);
+  const tmap = LS.get('_sync_t', {});              // key -> time of its last edit
+  const dirty = new Set();
+  let col = null, reconciled = false, timer = null, retry = null, flushing = false, rc = null;
+  const LABELS = {
+    local:   ['📴 This device only', 'var(--muted)'],
+    app:     ['📴 Works offline · saved on this device', 'var(--green)'],
+    syncing: ['☁️ Syncing…', 'var(--gold)'],
+    synced:  ['☁️ Synced across your devices', 'var(--green)'],
+    error:   ['⚠️ Sync problem — retrying', 'var(--red)'],
+  };
+  function setStatus(s){
+    document.querySelectorAll('.syncpill').forEach(el=>{ el.textContent=LABELS[s][0]; el.style.color=LABELS[s][1]; });
+  }
+  const saveT = () => { try{ localStorage.setItem('_sync_t', JSON.stringify(tmap)); }catch{} };
+  const docId = k => k.replace(/[^A-Za-z0-9_\-.:@+]/g, c => '~' + c.charCodeAt(0).toString(16).padStart(2,'0'));
+
+  function schedule(ms){ clearTimeout(timer); timer = setTimeout(flush, ms); }
+
+  function push(k){
+    if (SKIP.has(k)) return;
+    tmap[k] = Date.now(); saveT();
+    dirty.add(k);
+    if (col) { setStatus('syncing'); schedule(400); }
+  }
+
+  async function flush(){
+    if (!col || flushing) return;
+    flushing = true;
+    let k = null, failed = false;
+    try {
+      while (dirty.size) {
+        k = dirty.values().next().value;
+        dirty.delete(k);
+        const raw = localStorage.getItem(k);
+        if (raw === null) continue;
+        try { await col.doc(docId(k)).set({ k, v: raw, t: tmap[k] || Date.now() }); }
+        catch (e) {
+          const code = e && e.code;
+          if (code !== 'invalid_argument' && code !== 'quota_exceeded') dirty.add(k);
+          throw e;
+        }
+      }
+      setStatus('synced');
+    } catch (e) {
+      failed = true;
+      setStatus('error');
+    } finally {
+      flushing = false;
+      if (failed && dirty.size) { clearTimeout(retry); retry = setTimeout(flush, 8000); }
+    }
+  }
+
+  /* first sync on a device that already has local data: combine instead of overwrite */
+  function mergeLegacy(localRaw, remoteRaw){
+    try {
+      const L = JSON.parse(localRaw), R = JSON.parse(remoteRaw);
+      if (Array.isArray(L) && Array.isArray(R)) {
+        const seen = new Set(), out = [];
+        [...R, ...L].forEach(it => {
+          const id = (it && typeof it === 'object') ? (it.id ?? it.ts ?? JSON.stringify(it)) : JSON.stringify(it);
+          const key = typeof id + ':' + id;
+          if (!seen.has(key)) { seen.add(key); out.push(it); }
+        });
+        if (out.every(i => i && typeof i.ts === 'number')) out.sort((a,b) => b.ts - a.ts);
+        else if (out.every(i => i && typeof i.id === 'number')) out.sort((a,b) => a.id - b.id);
+        return JSON.stringify(out);
+      }
+      if (L && R && typeof L === 'object' && typeof R === 'object' && !Array.isArray(L) && !Array.isArray(R)) {
+        const out = { ...R };
+        Object.keys(L).forEach(k => { if (out[k] === undefined || L[k] === true) out[k] = L[k]; });
+        return JSON.stringify(out);
+      }
+    } catch {}
+    return remoteRaw;
+  }
+
+  function apply(x){
+    const k = x.k, lt = tmap[k] || 0, rt = x.t || 0;
+    const localRaw = localStorage.getItem(k);
+    if (localRaw === x.v) { tmap[k] = Math.max(lt, rt); return false; }
+    if (localRaw !== null && lt === 0) {                    // local data that never synced: merge
+      localStorage.setItem(k, mergeLegacy(localRaw, x.v));
+      tmap[k] = Date.now(); dirty.add(k); return true;
+    }
+    if (rt > lt) { localStorage.setItem(k, x.v); tmap[k] = rt; return true; }
+    if (lt > rt) dirty.add(k);                              // edited here while offline: push it
+    return false;
+  }
+
+  function onRemoteChange(){
+    clearTimeout(rc);
+    rc = setTimeout(() => { try{ refreshAll(); }catch{} }, 100);
+  }
+
+  async function uploadLocalOnly(keys){
+    let changed = false;
+    for (const k of keys) {
+      try {
+        const s = await col.doc(docId(k)).get();            // double-check it really is missing remotely
+        const x = s.exists ? s.data() : null;
+        if (x && typeof x.k === 'string' && typeof x.v === 'string') { if (apply(x)) changed = true; }
+        else { tmap[k] = tmap[k] || Date.now(); dirty.add(k); }
+      } catch {}
+    }
+    saveT();
+    if (dirty.size) { setStatus('syncing'); schedule(200); } else setStatus('synced');
+    if (changed) onRemoteChange();
+  }
+
+  function onSnap(snap){
+    let changed = false;
+    const remote = new Set();
+    snap.docs.forEach(d => {
+      const x = d.data();
+      if (!x || typeof x.k !== 'string' || typeof x.v !== 'string' || SKIP.has(x.k)) return;
+      remote.add(x.k);
+      if (apply(x)) changed = true;
+    });
+    saveT();
+    if (!reconciled && !snap.metadata.fromCache) {
+      reconciled = true;
+      const localOnly = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && !SKIP.has(k) && !remote.has(k)) localOnly.push(k);
+      }
+      if (localOnly.length) uploadLocalOnly(localOnly);
+    }
+    if (dirty.size) { setStatus('syncing'); schedule(300); }
+    else setStatus('synced');
+    if (changed) onRemoteChange();
+  }
+
+  async function connect(){
+    try {
+      if (typeof claude === 'undefined') { setStatus('app'); return; }
+      const [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
+      const id = user ? await user.id() : null;
+      if (!db || !id) return;                                // signed out / not available: stay local
+      col = db.collection('data/users/' + id);
+      setStatus('syncing');
+      col.onSnapshot(onSnap, e => {
+        if (e && e.code === 'revoked') { col = null; setStatus('local'); return; }
+        setStatus('error'); setTimeout(connect, 15000);
+      });
+    } catch { setStatus('local'); }
+  }
+
+  function stampAll(){                                       // after importing a backup file
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && !SKIP.has(k)) { tmap[k] = Date.now(); dirty.add(k); }
+    }
+    saveT();
+    if (col) { setStatus('syncing'); schedule(200); }
+  }
+
+  return { push, connect, setStatus, stampAll };
+})();
+
+let _bt;
+function showBanner(){ const b=G('sbanner'); b.className='sbanner show saved'; clearTimeout(_bt); _bt=setTimeout(()=>b.classList.remove('show'),1400); }
+function save(k,v){ LS.set(k,v); showBanner(); }
+
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  G('page-'+id).classList.add('active');
+  const order=['today','week','habits','journal','backup'];
+  document.querySelectorAll('.nl').forEach((b,i)=>b.classList.toggle('active', order[i]===id));
+  document.querySelectorAll('.bn').forEach((b,i)=>b.classList.toggle('active', order[i]===id));
+  if (id==='week') { renderWkRange(); renderWeekList(); loadGoals(); }
+  if (id==='habits') { renderWeekHabits(); renderGame(); }
+  if (id==='backup') { renderBkList(); }
+}
+
+/* ── TODAY TASKS ── */
+let todayTasks = LS.get('td_'+TODAY_STR, []);
+function addTodayTask(){
+  const inp=G('ti-inp'), txt=inp.value.trim(); if(!txt) return;
+  todayTasks.push({txt,done:false,id:Date.now()});
+  save('td_'+TODAY_STR, todayTasks); renderTodayTasks(); inp.value='';
+}
+function toggleTT(id){ const t=todayTasks.find(t=>t.id===id); if(!t) return; t.done=!t.done; save('td_'+TODAY_STR,todayTasks); renderTodayTasks(); }
+function delTT(id){ todayTasks=todayTasks.filter(t=>t.id!==id); save('td_'+TODAY_STR,todayTasks); renderTodayTasks(); }
+function renderTodayTasks(){
+  const el=G('ti-list');
+  if(!todayTasks.length){ el.innerHTML='<div class="empty"><span class="empty-ic">🎯</span>Add your tasks for today</div>'; return; }
+  el.innerHTML=todayTasks.map(t=>`
+    <div class="titem">
+      <div class="tchk ${t.done?'done':''}" onclick="toggleTT(${t.id})"></div>
+      <span class="ttxt ${t.done?'done':''}">${t.txt}</span>
+      <button class="tdel" onclick="delTT(${t.id})">✕</button>
+    </div>`).join('');
+}
+renderTodayTasks();
+G('ti-inp').addEventListener('keydown', e=>{ if(e.key==='Enter') addTodayTask(); });
+
+/* quick note */
+const savedNote = LS.get('note_'+TODAY_STR,'');
+if (savedNote) G('quick-note').value = savedNote;
+function saveQuickNote(){
+  save('note_'+TODAY_STR, G('quick-note').value.trim());
+  const s=G('qn-saved'); s.style.display='inline'; setTimeout(()=>s.style.display='none',2000);
+}
+
+/* ── PLAN FOR TOMORROW ── */
+/* Stored under the same td_<date> key as "today's tasks" — so whatever you add here
+   automatically becomes tomorrow's "Today's tasks" list once the date rolls over. */
+const TOMORROW = new Date(NOW); TOMORROW.setDate(TOMORROW.getDate()+1);
+const TOMORROW_STR = TOMORROW.toDateString();
+G('tomorrow-label').textContent = `🌒 Plan for ${EN_DAYS[TOMORROW.getDay()]}`;
+
+let tomorrowTasks = LS.get('td_'+TOMORROW_STR, []);
+function addTomorrowTask(){
+  const inp=G('tw-inp'), txt=inp.value.trim(); if(!txt) return;
+  tomorrowTasks.push({txt,done:false,id:Date.now()});
+  save('td_'+TOMORROW_STR, tomorrowTasks); renderTomorrowTasks(); inp.value='';
+}
+function toggleTW(id){ const t=tomorrowTasks.find(t=>t.id===id); if(!t) return; t.done=!t.done; save('td_'+TOMORROW_STR,tomorrowTasks); renderTomorrowTasks(); }
+function delTW(id){ tomorrowTasks=tomorrowTasks.filter(t=>t.id!==id); save('td_'+TOMORROW_STR,tomorrowTasks); renderTomorrowTasks(); }
+function renderTomorrowTasks(){
+  const el=G('tw-list');
+  if(!tomorrowTasks.length){ el.innerHTML='<div class="empty"><span class="empty-ic">🌒</span>Add tasks now and they\'ll be waiting for you tomorrow</div>'; return; }
+  el.innerHTML=tomorrowTasks.map(t=>`
+    <div class="titem" style="border-left-color:var(--violet)">
+      <div class="tchk ${t.done?'done':''}" onclick="toggleTW(${t.id})"></div>
+      <span class="ttxt ${t.done?'done':''}">${t.txt}</span>
+      <button class="tdel" onclick="delTW(${t.id})">✕</button>
+    </div>`).join('');
+}
+renderTomorrowTasks();
+G('tw-inp').addEventListener('keydown', e=>{ if(e.key==='Enter') addTomorrowTask(); });
+
+/* ── WEEK PLAN (single flat to-do list per week) ── */
+let wkOffset = 0;
+function shiftWk(dir){ wkOffset+=dir; renderWkRange(); renderWeekList(); loadGoals(); }
+function getViewSat(){ const s=new Date(getSat(NOW)); s.setDate(s.getDate()+wkOffset*7); return s; }
+function wkKey(){ return 'wk_'+getViewSat().toDateString(); }
+
+function renderWkRange(){
+  const s=getViewSat(); const f=new Date(s); f.setDate(s.getDate()+6);
+  const lbl = wkOffset===0?'this week':wkOffset>0?`in ${wkOffset} week${wkOffset>1?'s':''}`:`${Math.abs(wkOffset)} week${Math.abs(wkOffset)>1?'s':''} ago`;
+  G('wk-range').textContent = `${EN_MONTHS[s.getMonth()]} ${s.getDate()} → ${EN_MONTHS[f.getMonth()]} ${f.getDate()} (${lbl})`;
+}
+
+function loadGoals(){ if (document.activeElement !== G('wk-goals')) G('wk-goals').value = LS.get(wkKey()+'_goals',''); }
+G('wk-goals').addEventListener('input', ()=>{ clearTimeout(window._gt); window._gt=setTimeout(()=>save(wkKey()+'_goals', G('wk-goals').value),500); });
+
+const WCAT = {
+  study:{l:'📊 Study',c:'var(--blue)'}, work:{l:'💼 Work',c:'var(--gold)'},
+  lang:{l:'🗣️ Language',c:'var(--violet)'}, gym:{l:'💪 Health',c:'var(--green)'},
+  family:{l:'👨‍👩‍👦 Family',c:'var(--pink)'}, other:{l:'📌 Other',c:'var(--muted)'},
+};
+function weekListKey(){ return wkKey()+'_todo'; }
+function addWeekItem(){
+  const inp=G('wi-inp'), txt=inp.value.trim(); if(!txt) return;
+  const list=LS.get(weekListKey(),[]);
+  list.push({txt,cat:G('wi-cat').value,done:false,id:Date.now()});
+  save(weekListKey(), list); renderWeekList(); inp.value='';
+}
+function toggleWI(id){ const list=LS.get(weekListKey(),[]); const it=list.find(x=>x.id===id); if(!it) return; it.done=!it.done; save(weekListKey(),list); renderWeekList(); }
+function delWI(id){ const list=LS.get(weekListKey(),[]).filter(x=>x.id!==id); save(weekListKey(),list); renderWeekList(); }
+function renderWeekList(){
+  const el=G('wk-list'); const list=LS.get(weekListKey(),[]);
+  if(!list.length){
+    el.innerHTML='<div class="empty"><span class="empty-ic">🗓️</span>Add what you want to get done this week</div>';
+  } else {
+    el.innerHTML=list.map(it=>{
+      const m=WCAT[it.cat]||WCAT.other;
+      return `<div class="titem" style="border-left-color:${m.c}">
+        <div class="tchk ${it.done?'done':''}" onclick="toggleWI(${it.id})"></div>
+        <span class="ttxt ${it.done?'done':''}">${it.txt}</span>
+        <span class="wtag" style="background:${m.c}15;color:${m.c}">${m.l}</span>
+        <button class="tdel" onclick="delWI(${it.id})">✕</button>
+      </div>`;
+    }).join('');
+  }
+  const done=list.filter(x=>x.done).length, total=list.length;
+  const pct = total ? Math.round(done/total*100) : 0;
+  G('wkProg').style.width=pct+'%';
+  G('wkCnt').textContent=`${done} / ${total}`;
+  G('wkPct').textContent=pct+'%';
+}
+
+/* ── HABITS ── */
+const H_DEF = [
+  ['fajr','🌙 Fajr on time'],['dhuhr','☀️ Dhuhr on time'],['asr','🌤️ Asr on time'],
+  ['maghrib','🌅 Maghrib on time'],['isha','⭐ Isha on time'],
+  ['azkar_m','🕋 Morning Azkar'],['azkar_e','🕌 Evening Azkar'],
+  ['dhikr100','📿 100x La ilaha illa Allah + Istighfar'],
+  ['no_porn','🚫 No porn'],
+  ['reading','📖 Reading'],['study','💻 Study / Deep Learning'],['project','📊 Project work'],
+  ['sleep','😴 Sleep on time'],
+];
+
+/* day navigator — lets you go back and fill in / fix a previous day's habits */
+let habitOffset = 0; // 0 = today, -1 = yesterday, etc. Capped so you can't check off the future.
+function habitDate(){ const d=new Date(NOW); d.setDate(d.getDate()+habitOffset); d.setHours(0,0,0,0); return d; }
+function habitKey(){ return 'h_'+habitDate().toDateString(); }
+
+let habits = LS.get(habitKey(), {});
+function toggleHabit(el){
+  const before = gameStats(), nBefore = countDone(habits);
+  habits[el.dataset.h] = !habits[el.dataset.h];
+  save(habitKey(), habits); renderHabits();
+  const after = gameStats(), nAfter = countDone(habits);
+  const total = H_DEF.length, need = Math.ceil(total*GOOD);
+  if (after.level > before.level) gToast(`⬆️ Level ${after.level} — ${after.title}!`);
+  else if (after.badges.filter(b=>b.on).length > before.badges.filter(b=>b.on).length) {
+    const nb = after.badges.find((b,i)=>b.on && !before.badges[i].on); gToast(`🏅 Badge unlocked: ${nb.name}`);
+  }
+  else if (nAfter===total && nBefore<total) gToast('💯 Perfect day! +50 XP');
+  else if (nAfter===need && nBefore<need) gToast('🔥 Streak day secured!');
+}
+function shiftHabitDay(dir, jumpToToday){
+  if (jumpToToday) { habitOffset = 0; }
+  else {
+    if (habitOffset + dir > 0) return; // no future days
+    habitOffset += dir;
+  }
+  habits = LS.get(habitKey(), {});
+  renderHabitDayLabel(); renderHabits();
+}
+function renderHabitDayLabel(){
+  const d = habitDate();
+  let lbl;
+  if (habitOffset===0) lbl='Today';
+  else if (habitOffset===-1) lbl='Yesterday';
+  else lbl=`${EN_DAYS[d.getDay()]}, ${EN_MONTHS[d.getMonth()]} ${d.getDate()}`;
+  G('habit-day-label').textContent = lbl;
+  G('habits-label').textContent = habitOffset===0 ? "🔁 Today's habits" : `🔁 Habits — ${lbl}`;
+}
+function renderHabits(){
+  const items = document.querySelectorAll('.hi');
+  let done=0;
+  items.forEach(el=>{
+    if (habits[el.dataset.h]) { el.classList.add('done'); done++; }
+    else el.classList.remove('done');
+  });
+  const pct = items.length ? Math.round(done/items.length*100) : 0;
+  G('habProg').style.width = pct+'%';
+  G('habCnt').textContent = `${done} / ${items.length}`;
+  G('habPct').textContent = pct+'%';
+  renderGame();
+}
+renderHabitDayLabel();
+document.querySelectorAll('.hi').forEach(el=>{ const sp=document.createElement('span'); sp.className='hi-st'; el.insertBefore(sp, el.querySelector('.hi-bx')); });
+renderHabits();
+
+/* ── GAMIFICATION: 70-day challenge ── */
+const CH_DAYS = 70, GOOD = 0.7, CH_DEFAULT_START = '2026-10-19';
+const PRAYERS = ['fajr','dhuhr','asr','maghrib','isha'];
+function chStart(){
+  const v = LS.get('ch_start', CH_DEFAULT_START);
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(typeof v==='string' ? v : '') || /^(\d{4})-(\d{2})-(\d{2})$/.exec(CH_DEFAULT_START);
+  const d = new Date(+m[1], +m[2]-1, +m[3]); d.setHours(0,0,0,0); return d;
+}
+function setChStart(v){ if(!v) return; save('ch_start', v); renderGame(); }
+function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); x.setHours(0,0,0,0); return x; }
+function countDone(h){ let n=0; H_DEF.forEach(([k])=>{ if(h && h[k]) n++; }); return n; }
+function gToast(msg){ const t=G('gtoast'); t.textContent=msg; t.classList.add('show'); clearTimeout(gToast._t); gToast._t=setTimeout(()=>t.classList.remove('show'),2600); }
+const LVL_XP = 500;
+function lvlTitle(l){ return l<=2?'Rookie':l<=5?'Apprentice':l<=9?'Disciplined':l<=14?'Warrior':l<=20?'Champion':'Legend'; }
+
+function gameStats(){
+  const total=H_DEF.length, need=Math.ceil(total*GOOD);
+  const today=new Date(NOW); today.setHours(0,0,0,0);
+  const start=chStart();
+  let xp=0, perfect=0, best=0, run=0, anyDay=false, prayerRun=0, prayerBest=0, cleanRun=0, cleanBest=0, studyDays=0;
+  const days=[];
+  for(let i=0;i<CH_DAYS;i++){
+    const d=addDays(start,i), fut=d>today;
+    const h = fut ? {} : LS.get('h_'+d.toDateString(),{});
+    const n = fut ? 0 : countDone(h);
+    days.push({d,n,fut,now:d.getTime()===today.getTime()});
+    if(fut) continue;
+    if(n>0) anyDay=true;
+    xp += n*10; if(n===total){ xp+=50; perfect++; }
+    if(n>=need){ run++; best=Math.max(best,run); } else run=0;
+    if(PRAYERS.every(k=>h[k])){ prayerRun++; prayerBest=Math.max(prayerBest,prayerRun); } else prayerRun=0;
+    if(h.no_porn){ cleanRun++; cleanBest=Math.max(cleanBest,cleanRun); } else cleanRun=0;
+    if(h.study) studyDays++;
+  }
+  // current streak: walk back from today; today not finished yet doesn't break it
+  let cur=0, started=false;
+  for(let i=days.length-1;i>=0;i--){
+    const x=days[i]; if(x.fut) continue;
+    if(x.n>=need){ cur++; started=true; }
+    else if(x.now && !started){ continue; }
+    else break;
+  }
+  const dayNum = Math.max(0, Math.min(CH_DAYS, Math.round((today-start)/86400000)+1));
+  const level=Math.floor(xp/LVL_XP)+1;
+  const B=(ic,name,desc,on)=>({ic,name,desc,on});
+  const badges=[
+    B('🌱','First Step','Tick any habit',anyDay),
+    B('🔥','3-Day Streak','3 good days in a row',best>=3),
+    B('⚡','1 Week','7-day streak',best>=7),
+    B('🛡️','2 Weeks','14-day streak',best>=14),
+    B('🏔️','21 Days','21-day streak',best>=21),
+    B('🗡️','30 Days','30-day streak',best>=30),
+    B('👑','50 Days','50-day streak',best>=50),
+    B('🏆','Finisher','70-day streak',best>=70),
+    B('💯','Perfect Day','13 / 13 in one day',perfect>=1),
+    B('🌟','5 Perfect Days','5 days at 13 / 13',perfect>=5),
+    B('🕌','Prayer Keeper','All 5 prayers, 7 days straight',prayerBest>=7),
+    B('🧼','Clean 7','No porn, 7 days straight',cleanBest>=7),
+    B('💎','Clean 30','No porn, 30 days straight',cleanBest>=30),
+    B('🧠','Deep Learner','Study / Deep Learning on 20 days',studyDays>=20),
+  ];
+  return {xp,level,title:lvlTitle(level),into:xp%LVL_XP,perfect,best,cur,dayNum,days,need,total,badges,start,today};
+}
+
+function habitStreak(key){
+  const today=new Date(NOW); today.setHours(0,0,0,0);
+  let n=0;
+  for(let i=0;i<400;i++){
+    const d=addDays(today,-i);
+    const done=!!LS.get('h_'+d.toDateString(),{})[key];
+    if(done) n++; else if(i===0) continue; else break;
+  }
+  return n;
+}
+
+function renderGame(){
+  let g; try{ g=gameStats(); }catch(e){ return; }
+  const stripDay = g.dayNum===0 ? `Starts ${EN_MONTHS[g.start.getMonth()]} ${g.start.getDate()}` : `Day ${g.dayNum} / ${CH_DAYS}`;
+  G('cs-day').textContent = stripDay;
+  G('cs-streak').textContent = '🔥 '+g.cur;
+  G('cs-lv').textContent = `Lv ${g.level} · ${g.title}`;
+  G('cs-bar').style.width = Math.round(g.dayNum/CH_DAYS*100)+'%';
+  G('cs-ic').textContent = g.cur>=7?'🔥':g.cur>=1?'✨':'🎯';
+
+  G('ch-lv').textContent=g.level; G('ch-title').textContent=g.title;
+  G('ch-xptxt').textContent=`${g.xp} XP · ${LVL_XP-g.into} to Lv ${g.level+1}`;
+  G('ch-xpbar').style.width=Math.round(g.into/LVL_XP*100)+'%';
+  G('ch-day').textContent=g.dayNum; G('ch-cur').textContent=g.cur; G('ch-best').textContent=g.best; G('ch-perf').textContent=g.perfect;
+
+  G('ch-grid').innerHTML = g.days.map((x,i)=>{
+    const f=x.n/g.total;
+    const cls=['ch-cell', x.fut?'fut':'', x.n===g.total?'perf':f>=GOOD?'good':x.n>0?'low':'', x.now?'now':''].join(' ');
+    return `<div class="${cls}" title="${EN_MONTHS[x.d.getMonth()]} ${x.d.getDate()} — ${x.fut?'upcoming':x.n+' / '+g.total}">${i+1}</div>`;
+  }).join('');
+
+  const todayN = countDone(LS.get('h_'+g.today.toDateString(),{}));
+  const left = CH_DAYS - g.dayNum;
+  let msg;
+  if (g.dayNum===0) msg='Your challenge begins soon. Get ready!';
+  else if (g.dayNum>=CH_DAYS && g.cur>=CH_DAYS) msg='🏆 You finished the 70-day challenge with a perfect run. Legend!';
+  else if (todayN>=g.need) msg=`✅ Today is secured${todayN===g.total?' — perfect!':''}. Keep going: ${left} day${left===1?'':'s'} left.`;
+  else msg=`${g.need-todayN} more habit${g.need-todayN===1?'':'s'} today to ${g.cur>0?'keep your 🔥'+g.cur+' streak alive':'start a streak'}. ${left} day${left===1?'':'s'} left.`;
+  G('ch-msg').textContent=msg;
+
+  const got=g.badges.filter(b=>b.on).length;
+  G('ch-bcount').textContent=`${got} / ${g.badges.length}`;
+  G('ch-badges').innerHTML=g.badges.map(b=>`<div class="ch-b ${b.on?'on':''}"><div class="bi">${b.ic}</div><div class="bn2">${b.name}</div><div class="bd">${b.desc}</div></div>`).join('');
+  const inp=G('ch-start-inp');
+  if (document.activeElement!==inp) { const s=g.start; inp.value=`${s.getFullYear()}-${String(s.getMonth()+1).padStart(2,'0')}-${String(s.getDate()).padStart(2,'0')}`; }
+
+  document.querySelectorAll('.hi').forEach(el=>{
+    const n=habitStreak(el.dataset.h), sp=el.querySelector('.hi-st');
+    if(sp) sp.textContent = n>=2 ? '🔥'+n : '';
+  });
+}
+
+function renderWeekHabits(){
+  const sat = getSat(NOW);
+  const days = Array.from({length:7},(_,i)=>{ const d=new Date(sat); d.setDate(sat.getDate()+i); return d; });
+
+  let h = `<thead><tr><td style="font-size:10px;color:var(--muted);padding:3px 6px">Habit</td>`;
+  days.forEach(d=>{
+    const t = d.toDateString()===TODAY_STR;
+    h += `<td style="text-align:center;font-size:10px;padding:3px;color:${t?'var(--blue)':'var(--muted)'};font-weight:${t?700:400}">${EN_DAYS_SHORT[d.getDay()]}<br><span style="font-size:9px;opacity:.7">${d.getDate()}</span></td>`;
+  });
+  h += '</tr></thead><tbody>';
+
+  H_DEF.forEach(([key,lbl])=>{
+    h += `<tr><td style="font-size:10px;color:var(--text2);padding:3px 6px;white-space:nowrap">${lbl}</td>`;
+    days.forEach(d=>{
+      const done = !!(LS.get('h_'+d.toDateString(),{})[key]);
+      h += `<td><div class="whcell ${done?'done':''}">${done?'✓':''}</div></td>`;
+    });
+    h += '</tr>';
+  });
+  h += '</tbody>';
+  G('whtable').innerHTML = h;
+
+  let s='';
+  H_DEF.forEach(([key,lbl])=>{
+    let cnt=0; days.forEach(d=>{ if(LS.get('h_'+d.toDateString(),{})[key]) cnt++; });
+    const pct=Math.round(cnt/7*100);
+    const col=pct>=70?'var(--green)':pct>=40?'var(--gold)':'var(--red)';
+    s+=`<div class="wstat"><div class="wstat-p" style="color:${col}">${pct}%</div><div class="wstat-l">${lbl}</div></div>`;
+  });
+  G('whstats').innerHTML=s;
+}
+
+/* ── JOURNAL ── */
+let journal = LS.get('journal', []);
+function switchJTab(id,btn){
+  document.querySelectorAll('.jtab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.jpage').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('active'); G('jp-'+id).classList.add('on');
+}
+const J_TA={daily:'j-daily',reflect:'j-reflect',goals:'j-goals'};
+const J_NM={daily:'Daily',reflect:'Reflect',goals:'Goals'};
+function saveJ(type){
+  const ta=G(J_TA[type]), txt=ta.value.trim(); if(!txt) return;
+  journal.unshift({type,txt,date:NOW.toLocaleDateString('en-US'),ts:Date.now()});
+  if (journal.length>150) journal=journal.slice(0,150);
+  save('journal',journal); ta.value='';
+  const s=G('sv-'+type); s.style.display='inline'; setTimeout(()=>s.style.display='none',2000);
+  renderJournal();
+}
+function delJ(i){ journal.splice(i,1); save('journal',journal); renderJournal(); }
+function renderJournal(){
+  const el=G('j-entries');
+  if(!journal.length){ el.innerHTML='<div class="empty"><span class="empty-ic">📓</span>No entries yet</div>'; return; }
+  el.innerHTML=journal.slice(0,40).map((j,i)=>`
+    <div class="jentry">
+      <div class="jhead">
+        <span class="jdate">${j.date}</span>
+        <span class="jtype">${J_NM[j.type]||j.type}</span>
+        <button class="jdel" onclick="delJ(${i})">✕</button>
+      </div>
+      <div class="jtext">${j.txt}</div>
+    </div>`).join('');
+}
+renderJournal();
+
+/* ── BACKUP: export / import ── */
+function getAllData(){
+  const d={};
+  for (let i=0; i<localStorage.length; i++){
+    const k=localStorage.key(i);
+    if (k && k !== '_sync_t'){ try{ d[k]=JSON.parse(localStorage.getItem(k)); }catch{ d[k]=localStorage.getItem(k); } }
+  }
+  return d;
+}
+async function exportBackup(){
+  const data=getAllData();
+  const n=new Date();
+  const fn=`yousef_${n.getFullYear()}-${n.getMonth()+1}-${n.getDate()}.json`;
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  try {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fn;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  } catch (err) {
+    alert('❌ Could not save the backup file.');
+    return;
+  }
+  let recs=LS.get('bk_recs',[]);
+  recs.unshift({date:n.toLocaleDateString('en-US'),fn,size:Math.round(blob.size/1024)+'KB',ts:n.getTime()});
+  recs=recs.slice(0,4);
+  LS.set('bk_recs',recs); renderBkList(); showBanner();
+}
+function importBackup(e){
+  const file=e.target.files[0]; if (!file) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try {
+      const data=JSON.parse(ev.target.result);
+      Object.entries(data).forEach(([k,v])=>{ if (k==='_sync_t') return; try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} });
+      SYNC.stampAll();
+      showBanner();
+      setTimeout(()=>{ refreshAll(); alert('✅ Import successful!'); }, 300);
+    } catch { alert('❌ That file could not be read'); }
+  };
+  r.readAsText(file);
+  e.target.value='';
+}
+function renderBkList(){
+  const el=G('bk-list'), recs=LS.get('bk_recs',[]);
+  if (!recs.length){ el.innerHTML='<div class="empty"><span class="empty-ic">💾</span>No backups yet</div>'; return; }
+  el.innerHTML=recs.map((r,i)=>`
+    <div class="bkitem">
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600;color:var(--text)">${r.date}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">${r.fn}</div>
+      </div>
+      <div style="font-size:11px;color:var(--text2)">${r.size||'—'}</div>
+      ${i===0?'<span style="font-size:10px;padding:2px 8px;border-radius:5px;background:#00e5a015;color:var(--green);font-weight:700">latest</span>':''}
+    </div>`).join('');
+  const last=recs[0]?.ts||0;
+  const days = last ? Math.floor((Date.now()-last)/864e5) : null;
+  const rem=G('bk-reminder');
+  if (days===null) { rem.textContent='Export a backup now and then — it is the only copy besides this device.'; }
+  else if (days>=14) { rem.innerHTML=`<span style="color:var(--red)">⚠️ Last backup was ${days} days ago — export a fresh safety copy.</span>`; }
+  else { rem.textContent=`Last backup: ${days} day${days===1?'':'s'} ago.`; }
+}
+
+function refreshAll(){
+  todayTasks = LS.get('td_'+TODAY_STR, []);
+  tomorrowTasks = LS.get('td_'+TOMORROW_STR, []);
+  journal    = LS.get('journal', []);
+  habits     = LS.get(habitKey(), {});
+  if (document.activeElement !== G('quick-note')) G('quick-note').value = LS.get('note_'+TODAY_STR,'');
+  renderTodayTasks();
+  renderTomorrowTasks();
+  renderJournal();
+  renderHabits();
+  renderWkRange(); renderWeekList(); loadGoals();
+  renderWeekHabits();
+  renderBkList();
+}
+
+/* init */
+renderWkRange(); renderWeekList(); loadGoals();
+renderGame();
+
+/* left open overnight on a tablet? reload when the day changes so "Today" is really today */
+document.addEventListener('visibilitychange', ()=>{
+  if (!document.hidden && new Date().toDateString() !== TODAY_STR) location.reload();
+});
+
+SYNC.setStatus('local');
+SYNC.connect();
+
+if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
